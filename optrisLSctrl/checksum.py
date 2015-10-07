@@ -13,7 +13,7 @@ def genChecksum(x):
     
 def checkData(x, debug = False):
     
-    flag = genChecksum(x) == '\x00'
+    flag = genChecksum(x) == 0
     if debug and not flag:
         print "\n checksum does not match: ", x.__repr__()
     return flag
