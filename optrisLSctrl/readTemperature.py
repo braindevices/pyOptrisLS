@@ -34,21 +34,60 @@ def initSerialConnection(portName, portParams = SERIAL_INTERFACE_PARAMs()):
     
     ser = serial.Serial(port = portName, baudrate = portParams.baudRate, parity = portParams.parity, stopbits = portParams.stopBits, bytesize = portParams.byteSize)
 #     ser.open() #the serial port is automatically opened when it is explicitly defined as you have done with ser
+    time.sleep(10)
     if not ser.isOpen():
         raise IOError("I cannot open serial port %s"%(portName))
     else:
+        ser.close()
+        ser.open()
+        time.sleep(10)
         ser.flushInput() #flush input buffer, discarding all its contents
         ser.flushOutput()#flush output buffer, aborting current output and discard all that is in buffer
         
         
+    #handshake(ser)
     return ser
 
-import optrisLSCMDlist
+def handshake(ser):
+    ser.write('\x17\x17\x00\x00\x00\x00\x00\x17\x17\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x17\x17\x17\x17\x00\x00\x00\x00\x00\x17\x17\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x17\x17\x17\x17\x00\x00\x00\x00\x00\x17\x17')
+    time.sleep(1)
+    data = ser.read(2)
+    print data.__repr__
+    ser.write('\x17\x17')
+    time.sleep(1)
+    data = ser.read(2)
+    print data.__repr__
+    ser.write('\x12\x12')
+    time.sleep(1)
+    data = ser.read(2)
+    print data.__repr__
+    ser.write('\x17\x17')
+    time.sleep(1)
+    data = ser.read(2)
+    print data.__repr__
+    ser.write('\x17\x17')
+    time.sleep(1)
+    data = ser.read(2)
+    print data.__repr__
+    ser.write('\x15\x15')
+    time.sleep(1)
+    data = ser.read(3)
+    print data.__repr__
+    ser.write('\x16\x16')
+    time.sleep(1)
+    data = ser.read(3)
+    print data.__repr__
+    
+    
+    
+
+import optrisLSCMDlist, optrisLSCMDlist.device, optrisLSCMDlist.data
 from checksum import checkData
 
 def get_value(ser, cmd_obj, dispStr, debug = False):
     
     ser.write(cmd_obj.cmd_cs)
+    time.sleep(1)
     print dispStr,
     data = ser.read(size = cmd_obj.data_size_cs)
     if not checkData(bytearray(data), debug = debug):
@@ -67,16 +106,17 @@ def get_general_status(ser, debug = False):
 import struct
 def get_Float_T(data, bytePackType):
     
-    return (struct.unpack(bytePackType, data) - 1000.)/10
+    return (struct.unpack(bytePackType, data)[0] - 1000.)/10
     
     
 def lazyRead_IRtemperature(ser, debug = False):
     """
     get one T_obj data
     """
-    get_model_code(ser, debug)
-    get_general_status(ser, debug)
+    #get_model_code(ser, debug)
+    #get_general_status(ser, debug)
     ser.write(optrisLSCMDlist.data.T_obj.cmd_cs)
+    time.sleep(1)
     print "T_obj is ",
     data = ser.read(size = optrisLSCMDlist.data.T_obj.data_size_cs)
     if not checkData(bytearray(data), debug = debug):
