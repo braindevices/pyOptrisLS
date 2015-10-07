@@ -17,7 +17,7 @@ class CMDOBJ(object):
         self.data_size_cs = checksum_size + data_size
         if len(self.cmd)>1:
             
-            self.cmd_cs = genCMDwithChecksum(cmd)
+            self.cmd_cs = bytes(genCMDwithChecksum(bytearray(cmd)))
         else:
             self.cmd_cs = cmd*2
         self.bytePackType = bytePackType
